@@ -75,7 +75,7 @@ class CircuitBreaker::CircuitHandler
   #
   # Handles the method covered by the circuit breaker.
   #
-  def handle(circuit_state, method, *args)
+  def handle(circuit_state, method, *args, &block)
     if is_tripped(circuit_state)
       @logger.debug("handle: breaker is tripped, refusing to execute: #{circuit_state.inspect}") if @logger
       on_circuit_open(circuit_state)
@@ -85,7 +85,7 @@ class CircuitBreaker::CircuitHandler
     begin
       out = nil
       Timeout.timeout(@invocation_timeout, CircuitBreaker::CircuitBrokenException) do
-        out = method[*args]
+        out = method[*args, &block]
         on_success(circuit_state)
       end
     rescue Exception => e
